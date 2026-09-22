@@ -25,7 +25,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   background:var(--chrome);border-bottom:1px solid var(--line2);padding:10px 16px}
 .brand{font-family:var(--mono);font-weight:600;font-size:15px;letter-spacing:.06em}
-.brand i{color:var(--cy);font-style:normal}
 .brand em{font-style:normal;color:var(--dim);font-size:11px;margin-left:9px;letter-spacing:.14em}
 .tbsep{width:1px;height:20px;background:var(--line2)}
 button{font-family:var(--mono);font-size:12px;color:var(--ink);background:#182031;border:1px solid var(--line2);border-radius:4px;padding:7px 12px;cursor:pointer;transition:background .1s}
@@ -86,7 +85,7 @@ canvas{display:block;width:100%;background:var(--field);border:1px solid var(--l
 <body>
 
 <div class="top" id="drop">
-  <span class="brand">qu<i>ery</i><em>SQLITE / WASM</em></span>
+  <span class="brand">query<em>SQLITE / WASM</em></span>
   <div class="tbsep"></div>
   <button class="primary" id="pick">Load CSV</button>
   <button id="seed">Sample warehouse</button>
