@@ -7,117 +7,131 @@
 <meta name="description" content="A real SQL database in the browser tab. Drop a CSV, write SQL against it, chart the result. Nothing leaves the machine." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
 :root{
-  --bg:#0b1113; --surface:#141d20; --raised:#1b262a; --line:#243136;
-  --ink:#eef3f2; --muted:#8fa3a6; --dim:#5d7075;
-  --gold:#e0a04a; --teal:#4fb3ab; --red:#d2694e;
-  --shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 10px 22px -12px rgba(0,0,0,.9), 0 2px 4px rgba(0,0,0,.4);
-  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --bg:#0a0d14; --chrome:#11151f; --pane:#0e121b; --field:#070910;
+  --line:#1e2533; --line2:#2a3345;
+  --ink:#e4e8f0; --muted:#8d97ab; --dim:#5a6478;
+  --cy:#22d3ee; --vi:#a78bfa; --ok:#4ade80; --bad:#f87171;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-body{padding:0 16px 64px}
-.wrap{max-width:1120px;margin:0 auto}
-header{padding:44px 0 26px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
-h1{font-family:var(--mono);font-weight:700;font-size:26px;letter-spacing:.14em;margin:0}
-h1 span{color:var(--gold)}
-.sub{color:var(--muted);font-size:14px;margin:6px 0 0;max-width:48ch;line-height:1.5}
-.badge{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
-.panel{padding:16px}
-.ph{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:12px;flex-wrap:wrap}
-.ph h2{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin:0;color:var(--muted);font-weight:500}
-.ph .meta{font-family:var(--mono);font-size:11px;color:var(--dim)}
-button{font:inherit;font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--ink);background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:9px 15px;cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 3px 0 -1px rgba(0,0,0,.5),0 6px 12px -8px #000;transition:transform .08s ease}
-button:hover{border-color:#31434a}
-button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
-button.primary{background:var(--gold);color:#20160a;border-color:#c98c39;font-weight:700}
-button[disabled]{opacity:.4;cursor:not-allowed}
-button.sm{font-size:11px;padding:6px 10px}
-.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.hint{color:var(--dim);font-size:13px}
-.layout{display:grid;grid-template-columns:230px 1fr;gap:14px;margin-top:14px;align-items:start}
-@media(max-width:820px){.layout{grid-template-columns:1fr}}
-.tbl-item{border-top:1px solid var(--line);padding:10px 0}
-.tbl-item:first-of-type{border-top:0}
-.tbl-name{font-family:var(--mono);font-size:12px;color:var(--gold);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
-.tbl-name b{color:var(--dim);font-weight:400}
-.cols{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:6px;line-height:1.7}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-size:14px}
+
+/* --- app chrome: a fixed toolbar, not a marketing header --- */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--chrome);border-bottom:1px solid var(--line2);padding:10px 16px}
+.brand{font-family:var(--mono);font-weight:600;font-size:15px;letter-spacing:.06em}
+.brand i{color:var(--cy);font-style:normal}
+.brand em{font-style:normal;color:var(--dim);font-size:11px;margin-left:9px;letter-spacing:.14em}
+.tbsep{width:1px;height:20px;background:var(--line2)}
+button{font-family:var(--mono);font-size:12px;color:var(--ink);background:#182031;border:1px solid var(--line2);border-radius:4px;padding:7px 12px;cursor:pointer;transition:background .1s}
+button:hover:not([disabled]){background:#1f2a3e;border-color:#374560}
+button:active:not([disabled]){background:#141b29}
+button.primary{background:var(--cy);color:#04222a;border-color:#1aa8bd;font-weight:600}
+button.primary:hover:not([disabled]){background:#43dcf2}
+button[disabled]{opacity:.35;cursor:not-allowed}
+.spacer{flex:1}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+
+/* --- three pane workbench --- */
+.shell{display:grid;grid-template-columns:252px 1fr;min-height:calc(100vh - 43px)}
+@media(max-width:840px){.shell{grid-template-columns:1fr}}
+.rail{background:var(--pane);border-right:1px solid var(--line);padding:14px}
+.railhead{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);padding-bottom:10px;border-bottom:1px solid var(--line)}
+.tbl-item{padding:11px 0;border-bottom:1px solid var(--line)}
+.tbl-name{font-family:var(--mono);font-size:12.5px;color:var(--cy);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.tbl-name:hover{color:#7de9fb}
+.tbl-name b{color:var(--dim);font-weight:400;font-size:11px}
+.cols{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:7px;line-height:1.75;padding-left:9px;border-left:1px solid var(--line2)}
 .cols i{color:var(--muted);font-style:normal}
-textarea{width:100%;min-height:132px;resize:vertical;background:#080d0f;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:13px;font-family:var(--mono);font-size:13px;line-height:1.65;outline:none;caret-color:var(--gold)}
-textarea:focus{border-color:#35494f}
-.res{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:10px;background:#080d0f}
+.main{display:flex;flex-direction:column;min-width:0}
+.edit{border-bottom:1px solid var(--line);padding:14px 16px;background:var(--bg)}
+.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:9px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+textarea{width:100%;min-height:126px;resize:vertical;background:var(--field);color:var(--ink);border:1px solid var(--line2);border-radius:4px;padding:12px 13px;
+  font-family:var(--mono);font-size:13px;line-height:1.7;outline:none;caret-color:var(--cy);tab-size:2}
+textarea:focus{border-color:var(--cy)}
+.runbar{display:flex;gap:9px;align-items:center;margin-top:11px;flex-wrap:wrap}
+.ex{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.ex button{font-size:11px;padding:5px 9px;background:transparent;color:var(--muted)}
+.ex button:hover{color:var(--ink)}
+
+/* --- results and chart share one pane through tabs --- */
+.tabs{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--line);background:var(--pane);padding:0 16px}
+.tab{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:12px 14px}
+.tab:hover:not([disabled]){background:none;color:var(--muted)}
+.tab.on{color:var(--ink);border-bottom-color:var(--vi)}
+.tabmeta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.pane{padding:0;flex:1;min-height:200px}
+.pad{padding:14px 16px}
+.res{overflow:auto;max-height:52vh}
 table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
-th,td{text-align:left;padding:8px 12px;border-bottom:1px solid #162024;white-space:nowrap}
-th{position:sticky;top:0;background:#101a1d;color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;z-index:1}
-td{color:#cfdcda}
-td.num{text-align:right;color:var(--teal)}
-td.null{color:#455459;font-style:italic}
-tbody tr:hover td{background:#0f1719}
-.err{font-family:var(--mono);font-size:12.5px;color:var(--red);padding:14px;background:#1a100e;border:1px solid #3a221c;border-radius:10px;white-space:pre-wrap}
-.ex{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-canvas{display:block;width:100%;border-radius:10px;background:#080d0f;border:1px solid var(--line)}
-footer{color:var(--dim);font-size:13px;margin-top:34px;line-height:1.6;border-top:1px solid var(--line);padding-top:18px}
-footer a{color:var(--muted)}
-.drop.over{border-color:var(--gold)}
+th,td{text-align:left;padding:7px 14px;border-bottom:1px solid #151b27;white-space:nowrap}
+th{position:sticky;top:0;background:var(--chrome);color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;z-index:1;border-bottom:1px solid var(--line2)}
+td{color:#c3cbdb}
+td.num{text-align:right;color:var(--cy)}
+td.null{color:#3d4657;font-style:italic}
+tbody tr:nth-child(even) td{background:#0b0f17}
+tbody tr:hover td{background:#131a27}
+.err{font-family:var(--mono);font-size:12.5px;color:var(--bad);padding:13px;background:#1a0f12;border-left:2px solid var(--bad);white-space:pre-wrap}
+canvas{display:block;width:100%;background:var(--field);border:1px solid var(--line2);border-radius:4px}
+.foot{border-top:1px solid var(--line);padding:14px 16px;color:var(--dim);font-size:12.5px;line-height:1.65;background:var(--pane)}
+.foot a{color:var(--muted)}
+.over{outline:1px solid var(--cy);outline-offset:-1px}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <div>
-    <h1>QU<span>ERY</span></h1>
-    <p class="sub">A real SQLite database compiled to WebAssembly, running inside the tab. Drop a CSV, write SQL against it, chart the result. Nothing is uploaded and nothing is stored.</p>
-  </div>
-  <div class="badge">SQLITE / WASM / IN MEMORY</div>
-</header>
 
-<div class="card panel drop" id="drop">
-  <div class="bar">
-    <button class="primary" id="pick">Load CSV</button>
-    <button id="seed">Load sample warehouse</button>
-    <button id="reset">Reset database</button>
-    <span class="hint" id="hint">Booting SQLite...</span>
-    <input type="file" id="file" accept=".csv,.tsv,text/csv" multiple hidden />
-  </div>
+<div class="top" id="drop">
+  <span class="brand">qu<i>ery</i><em>SQLITE / WASM</em></span>
+  <div class="tbsep"></div>
+  <button class="primary" id="pick">Load CSV</button>
+  <button id="seed">Sample warehouse</button>
+  <button id="reset">Reset</button>
+  <input type="file" id="file" accept=".csv,.tsv,text/csv" multiple hidden />
+  <div class="spacer"></div>
+  <span class="hint" id="hint">Booting SQLite...</span>
 </div>
 
-<div class="layout">
-  <div class="card panel">
-    <div class="ph"><h2>Schema</h2><span class="meta" id="sc-meta">0 tables</span></div>
-    <div id="schema"><p class="hint" style="font-size:12px;margin:0">No tables yet. Load a CSV or the sample warehouse.</p></div>
-  </div>
+<div class="shell">
+  <aside class="rail">
+    <div class="railhead"><span>Schema</span><span id="sc-meta">0 tables</span></div>
+    <div id="schema"><p class="hint" style="margin:12px 0 0">No tables yet.</p></div>
+  </aside>
 
-  <div>
-    <div class="card panel">
-      <div class="ph"><h2>SQL</h2><span class="meta">cmd or ctrl + enter to run</span></div>
+  <div class="main">
+    <div class="edit">
+      <div class="lbl"><span>Editor</span><span>cmd / ctrl + enter to run</span></div>
       <textarea id="sql" spellcheck="false" placeholder="select * from orders limit 20;"></textarea>
-      <div class="bar" style="margin-top:12px">
-        <button class="primary" id="run">Run query</button>
-        <button id="csv" disabled>Download result</button>
-        <span class="meta" id="timing" style="font-family:var(--mono);font-size:11px;color:var(--dim)"></span>
+      <div class="runbar">
+        <button class="primary" id="run">Run</button>
+        <button id="csv" disabled>Export CSV</button>
+        <span class="hint" id="timing"></span>
       </div>
       <div class="ex" id="examples"></div>
     </div>
 
-    <div class="card panel" style="margin-top:14px">
-      <div class="ph"><h2>Result</h2><span class="meta" id="rmeta">--</span></div>
-      <div id="out"><p class="hint" style="font-size:12px;margin:0">Run a query to see rows here.</p></div>
+    <div class="tabs">
+      <button class="tab on" id="tab-res">Results</button>
+      <button class="tab" id="tab-chart" disabled>Chart</button>
+      <span class="tabmeta" id="rmeta">--</span>
+    </div>
+    <div class="pane" id="pane-res">
+      <div id="out"><p class="hint pad" style="margin:0">Run a query to see rows here.</p></div>
+    </div>
+    <div class="pane pad" id="chartCard" hidden>
+      <div class="lbl"><span id="cmeta"></span></div>
+      <canvas id="chart" height="280"></canvas>
     </div>
 
-    <div class="card panel" style="margin-top:14px" id="chartCard" hidden>
-      <div class="ph"><h2>Chart</h2><span class="meta" id="cmeta"></span></div>
-      <canvas id="chart" height="260"></canvas>
+    <div class="foot">
+      Built by <a href="https://bxzex.com">bxzex</a>. SQLite compiled to WebAssembly, a hand written CSV parser with type inference, and a canvas chart renderer that picks its own shape from the result columns.
+      <a href="https://github.com/bxzex/query">Source on GitHub</a>.
     </div>
   </div>
-</div>
-
-<footer>
-  Built by <a href="https://bxzex.com">bxzex</a>. SQLite compiled to WebAssembly, a hand written CSV parser with type inference, and a canvas chart renderer that picks its own shape from the result columns.
-  <a href="https://github.com/bxzex/query">Source on GitHub</a>.
-</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
@@ -183,7 +197,7 @@ function refreshSchema(){
   const r = db.exec("select name from sqlite_master where type='table' order by name");
   const names = r.length ? r[0].values.map(v=>v[0]) : [];
   $("sc-meta").textContent = names.length + (names.length===1?" table":" tables");
-  if(!names.length){ $("schema").innerHTML = '<p class="hint" style="font-size:12px;margin:0">No tables yet. Load a CSV or the sample warehouse.</p>'; return; }
+  if(!names.length){ $("schema").innerHTML = '<p class="hint" style="margin:12px 0 0">No tables yet.</p>'; return; }
   $("schema").innerHTML = names.map(n=>{
     const info = db.exec("pragma table_info("+n+")")[0];
     const count = db.exec("select count(*) from "+n)[0].values[0][0];
@@ -205,15 +219,15 @@ function run(){
   catch(e){
     $("out").innerHTML = '<div class="err">'+String(e.message||e).replace(/[<>]/g,"")+'</div>';
     $("rmeta").textContent = "error"; $("timing").textContent=""; $("chartCard").hidden=true;
-    $("csv").disabled = true; return;
+    syncTabs(); $("csv").disabled = true; return;
   }
   const ms = performance.now()-t0;
   $("timing").textContent = ms.toFixed(1)+" ms";
   refreshSchema();
   if(!res.length){
-    $("out").innerHTML = '<p class="hint" style="font-size:12px;margin:0">Statement ran. No rows returned.</p>';
+    $("out").innerHTML = '<p class="hint pad" style="margin:0">Statement ran. No rows returned.</p>';
     $("rmeta").textContent = db.getRowsModified()+" rows changed";
-    $("chartCard").hidden = true; $("csv").disabled = true; lastResult=null; return;
+    $("chartCard").hidden = true; syncTabs(); $("csv").disabled = true; lastResult=null; return;
   }
   const r = res[res.length-1];
   lastResult = r;
@@ -225,8 +239,9 @@ function run(){
     : '<td>'+String(v).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))+'</td>';
   $("out").innerHTML = '<div class="res"><table><thead><tr>'+r.columns.map(c=>'<th>'+c+'</th>').join("")+
     '</tr></thead><tbody>'+cap.map(row=>'<tr>'+row.map(cell).join("")+'</tr>').join("")+'</tbody></table></div>'+
-    (r.values.length>cap.length ? '<p class="hint" style="font-size:11px;margin:9px 0 0">Showing the first 500 rows. Download the result for all of them.</p>' : '');
+    (r.values.length>cap.length ? '<p class="hint pad" style="font-size:11px;margin:0">Showing the first 500 rows. Download the result for all of them.</p>' : '');
   chart(r);
+  syncTabs();
 }
 
 /* ---------- chart: picks its own shape from the columns ---------- */
@@ -243,14 +258,14 @@ function chart(r){
   const d = window.devicePixelRatio||1, rect = c.getBoundingClientRect();
   c.width = Math.round(rect.width*d); c.height = Math.round(260*d);
   const W=c.width, H=c.height, padL=64*d, padB=44*d, padT=14*d, padR=12*d;
-  x.fillStyle="#080d0f"; x.fillRect(0,0,W,H);
+  x.fillStyle="#070910"; x.fillRect(0,0,W,H);
   const vals = r.values.map(v => Number(v[vi])||0);
   const max = Math.max(...vals, 0), min = Math.min(...vals, 0);
   const span = (max-min)||1;
   const y = v => H-padB - ((v-min)/span)*(H-padB-padT);
 
-  x.strokeStyle="#1d2a2e"; x.lineWidth=1*d;
-  x.font = (10*d)+"px JetBrains Mono, monospace"; x.fillStyle="#5d7075";
+  x.strokeStyle="#1b2230"; x.lineWidth=1*d;
+  x.font = (10*d)+"px IBM Plex Mono, monospace"; x.fillStyle="#5a6478";
   for(let g=0; g<=4; g++){
     const v = min + span*g/4, yy = y(v);
     x.beginPath(); x.moveTo(padL,yy); x.lineTo(W-padR,yy); x.stroke();
@@ -260,10 +275,10 @@ function chart(r){
   x.textAlign="center";
   vals.forEach((v,i)=>{
     const bx = padL + i*bw, h = Math.abs(y(v)-y(0));
-    x.fillStyle = v<0 ? "#d2694e" : "#e0a04a";
+    x.fillStyle = v<0 ? "#f87171" : "#22d3ee";
     x.fillRect(bx+bw*0.16, Math.min(y(v),y(0)), bw*0.68, Math.max(2*d,h));
     if(labIdx>=0 && n<=18){
-      x.fillStyle="#8fa3a6";
+      x.fillStyle="#8d97ab";
       const lab = String(r.values[i][labIdx]).slice(0,11);
       x.fillText(lab, bx+bw/2, H-padB+16*d);
     }
@@ -323,7 +338,7 @@ $("sql").addEventListener("keydown", e => {
 $("pick").onclick = () => $("file").click();
 $("file").onchange = e => handleFiles(e.target.files);
 $("seed").onclick = seed;
-$("reset").onclick = () => { db.close(); db = new SQL.Database(); refreshSchema(); $("out").innerHTML='<p class="hint" style="font-size:12px;margin:0">Database reset.</p>'; $("hint").textContent="Empty database. Load a CSV or the sample warehouse."; $("chartCard").hidden=true; };
+$("reset").onclick = () => { db.close(); db = new SQL.Database(); refreshSchema(); $("out").innerHTML='<p class="hint pad" style="margin:0">Database reset.</p>'; $("hint").textContent="Empty database. Load a CSV or the sample warehouse."; $("chartCard").hidden=true; syncTabs(); };
 $("csv").onclick = () => {
   if(!lastResult) return;
   const esc = v => v==null ? "" : /[",\n]/.test(String(v)) ? '"'+String(v).replace(/"/g,'""')+'"' : String(v);
@@ -349,7 +364,27 @@ const drop=$("drop");
 ["dragenter","dragover"].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over")}));
 ["dragleave","drop"].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over")}));
 document.addEventListener("drop", e => { e.preventDefault(); if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
-window.addEventListener("resize", () => { if(lastResult) chart(lastResult); });
+
+/* ---------- tab strip over the result pane ---------- */
+let tab = "res";
+function showTab(which){
+  if(which==="chart" && $("tab-chart").disabled) which = "res";
+  tab = which;
+  $("pane-res").hidden = which!=="res";
+  $("chartCard").style.display = which==="chart" ? "" : "none";
+  $("tab-res").classList.toggle("on", which==="res");
+  $("tab-chart").classList.toggle("on", which==="chart");
+  if(which==="chart" && lastResult) chart(lastResult);
+}
+function syncTabs(){
+  const has = !$("chartCard").hidden;
+  $("tab-chart").disabled = !has;
+  if(!has && tab==="chart") showTab("res"); else showTab(tab);
+}
+$("tab-res").onclick = () => showTab("res");
+$("tab-chart").onclick = () => showTab("chart");
+
+window.addEventListener("resize", () => { if(lastResult && tab==="chart") chart(lastResult); });
 
 initSqlJs({ locateFile: f => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/"+f })
   .then(S => { SQL=S; db=new SQL.Database(); $("hint").textContent="SQLite ready. Drop a CSV anywhere, or load the sample warehouse."; seed(); })
